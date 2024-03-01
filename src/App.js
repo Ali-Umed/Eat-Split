@@ -1,102 +1,65 @@
-import { useState } from 'react';
-
-const initialFriends = [
-  {
-    id: 118836,
-    name: 'Clark',
-    image: 'https://i.pravatar.cc/48?u=118836',
-    balance: -7,
-  },
-  {
-    id: 933372,
-    name: 'Sarah',
-    image: 'https://i.pravatar.cc/48?u=933372',
-    balance: 20,
-  },
-  {
-    id: 499476,
-    name: 'Anthony',
-    image: 'https://i.pravatar.cc/48?u=499476',
-    balance: 0,
-  },
-];
+import { useState } from "react";
+import { initialFriends } from "./data/data";
+import FriendsList from "./components/FriendList";
+import Button from "./components/Button";
+import FormAddFriend from "./components/FormAddFriendd";
+import FormSplitBill from "./components/FormSplitBill";
 
 export default function App() {
+  const [friends, setFriends] = useState(initialFriends);
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState(null);
 
-  const [formShow, setFormShow] = useState();
-
-  function formFriendShow(friend) {
-    setFormShow(e => (e?.id === friend.id ? null : friend));
+  function handleShowAddFriend() {
+    setShowAddFriend((show) => !show);
   }
-  
+
+  function handleAddFriend(friend) {
+    setFriends((friends) => [...friends, friend]);
+    setShowAddFriend(false);
+  }
+
+  function handleSelection(friend) {
+    // setSelectedFriend(friend);
+    setSelectedFriend((cur) => (cur?.id === friend.id ? null : friend));
+    setShowAddFriend(false);
+  }
+
+  function handleSplitBill(value) {
+    setFriends((friends) =>
+      friends.map((friend) =>
+        friend.id === selectedFriend.id
+          ? { ...friend, balance: friend.balance + value }
+          : friend
+      )
+    );
+
+    setSelectedFriend(null);
+  }
+
   return (
     <div className="app">
-      <div className="slidebar">
-        <div style={{ display: 'flex' }}>
-          <FriendList
-            initialFriends={initialFriends}
-            formFriendShow={formFriendShow}
-            formShow={formShow}
-          />
-        </div>
-        <AddFrind />
-      </div>
-    </div>
-  );
-}
-
-function FriendList({ initialFriends, formFriendShow, formShow }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {initialFriends.map(e => (
-        <Friend
-          friend={e}
-          key={e.id}
-          formFriendShow={formFriendShow}
-          formShow={formShow}
+      <div className="sidebar">
+        <FriendsList
+          friends={friends}
+          selectedFriend={selectedFriend}
+          onSelection={handleSelection}
         />
-      ))}
-    </div>
-  );
-}
 
-function Friend({ friend, formFriendShow, formShow }) {
-  return (
-    <div style={formShow?.id === friend.id ? { backgroundColor: 'red' } : {}}>
-      <img src={friend.image} alt="badaxawa wyna nia " />
+        {showAddFriend && <FormAddFriend onAddFriend={handleAddFriend} />}
 
-      <h2>{friend.name}</h2>
-      {friend.balance < 0 && (
-        <p style={{ color: 'red' }}>
-          you owe {friend.name} {friend.balance * -1} $
-        </p>
-      )}
-
-      {friend.balance > 0 && (
-        <p style={{ color: 'blue' }}>
-          {friend.name} ows you {friend.balance} $
-        </p>
-      )}
-
-      {friend.balance === 0 && <p>you and {friend.name} are even $</p>}
-
-      <button onClick={() => formFriendShow(friend)}> select</button>
-    </div>
-  );
-}
-
-function AddFrind() {
-  return (
-    <div>
-      <div style={{ display: 'flex' }}>
-        <h1>friend name </h1>
-        <input type="text" />
+        <Button onClick={handleShowAddFriend}>
+          {showAddFriend ? "Close" : "Add friend"}
+        </Button>
       </div>
-      <div style={{ display: 'flex' }}>
-        <h1>Image url </h1>
-        <input type="text" value={'https://i.pravatar.cc/48'} />
-      </div>
-      <button>add friend </button>
+
+      {selectedFriend && (
+        <FormSplitBill
+          selectedFriend={selectedFriend}
+          onSplitBill={handleSplitBill}
+          key={selectedFriend.id}
+        />
+      )}
     </div>
   );
 }
